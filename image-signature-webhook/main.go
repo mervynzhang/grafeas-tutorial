@@ -30,7 +30,7 @@ import (
 	"golang.org/x/crypto/openpgp/clearsign"
 	"golang.org/x/crypto/openpgp/packet"
 
-	grafeas "github.com/Grafeas/client-go/v1alpha1"
+	grafeas "github.com/Grafeas/client-go/v1beta1"
 
 	"k8s.io/api/admission/v1beta1"
 	"k8s.io/api/core/v1"
@@ -44,8 +44,8 @@ var (
 )
 
 var (
-	notesPath       = "/v1alpha1/projects/image-signing/notes"
-	occurrencesPath = "/v1alpha1/projects/image-signing/occurrences"
+	notesPath       = "/v1beta1/projects/image-signing/notes"
+	occurrencesPath = "/v1beta1/projects/image-signing/occurrences"
 )
 
 func main() {
@@ -114,7 +114,8 @@ func admissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		occurrencesResponse := grafeas.ListOccurrencesResponse{}
+		// occurrencesResponse := grafeas.ListOccurrencesResponse{}
+		occurrencesResponse := grafeas.V1beta1ListOccurrencesResponse{}
 		if err := json.Unmarshal(data, &occurrencesResponse); err != nil {
 			log.Println(err)
 			continue
@@ -123,9 +124,9 @@ func admissionReviewHandler(w http.ResponseWriter, r *http.Request) {
 		// Find a valid signature for the given container image.
 		match := false
 		for _, occurrence := range occurrencesResponse.Occurrences {
-			resourceUrl := occurrence.ResourceUrl
-			signature := occurrence.Attestation.PgpSignedAttestation.Signature
-			keyId := occurrence.Attestation.PgpSignedAttestation.PgpKeyId
+			resourceUrl := occurrence.Resource.Uri
+			signature := occurrence.Attestation.Attestation.PgpSignedAttestation.Signature
+			keyId := occurrence.Attestation.Attestation.PgpSignedAttestation.PgpKeyId
 
 			log.Printf("Container Image: %s", container.Image)
 			log.Printf("ResourceUrl: %s", resourceUrl)
